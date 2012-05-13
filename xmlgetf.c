@@ -17,28 +17,33 @@
 #include "ezxml/ezxml.h"
 #include <unistd.h>
 
-static const char* 
-get_attribute_at_field(ezxml_t* doc, const char* field, const char* attr)
+static char* 
+get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
 }
 
-static const char*
-get_text_at_field(ezxml_t* doc, const char* field)
+static char*
+get_text_at_field(ezxml_t doc, const char* field)
 {
 }
 
-static const char*
-search_attribute(ezxml_t* doc, const char *attr)
+static char*
+search_attrs(ezxml_t doc, const char *attr)
 {
 }
 
-static const char*
-search_field(ezxml_t* doc, const char *attr)
+static char*
+search_fields(ezxml_t doc, const char *field)
+{
+}
+
+static char*
+search_fields_get_attr(ezxml_t doc, const char* field, const char* attr)
 {
 }
 
 static void
-perform_actions(ezxml_t* doc,
+perform_actions(ezxml_t doc,
                 const char* tag, const char* attr,
                 int s_attr, int s_tag)
 {
@@ -48,12 +53,31 @@ perform_actions(ezxml_t* doc,
   printf("%s %s %d %d", tag, attr, s_attr, s_tag);
   char* attr_value = NULL;
   char* tag_value = NULL;
+
+  /* get text at named path */
+  if (!s_tag && tag != NULL && attr == NULL)
+      tag_value = get_text_at_field(doc, tag);
+  /* get attribute of the named field path */
+  else if (!s_tag && tag != NULL && attr != NULL)
+      attr_value = get_attr_at_field(doc, tag, attr);
+  /* get all the fields with the name "tag" */
+  else if (s_tag && tag != NULL && attr == NULL)
+      attr_value = search_fields(doc, tag);
+  /* get attribute "attr" from fields named "tag" */
+  else if (s_tag && tag != NULL && attr != NULL)
+      attr_value = search_fields_get_attr(doc, tag, attr);
+  /* get all attributes named "attr" */
+  else if (s_attr && attr != NULL)
+      attr_value = search_attrs(doc, attr);
+
+  if(attr_value != NULL) printf("%s", attr_value);
+  if(tag_value != NULL) printf("%s", tag_value);
 }
 
 
 int main(int argc, char* argv[])
 {
-  /* store attribute and tag names */
+  /* store attr and tag names */
   char* tag_name = NULL;
   char* attr_name = NULL;
 
@@ -78,7 +102,7 @@ int main(int argc, char* argv[])
 	  break;
 
 	case 'A':
-	  search_attr = 1;	/* attribute will be searched */
+	  search_attr = 1;	/* attr will be searched */
 	  attr_name = optarg;
 	  break;
 
