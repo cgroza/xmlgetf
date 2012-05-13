@@ -40,15 +40,21 @@ search_field(ezxml_t* doc, const char *attr)
 static void
 perform_actions(const char* tag, const char* attr, int s_attr, int s_tag)
 {
+  /* Checks its arguments and calls the necessary functions 
+     to extract the data. */
+
+  printf("%s %s %d %d", tag, attr, s_attr, s_tag);
+
+  char* attr_value = NULL;
+  char* tag_value = NULL;
 }
 
 
 int main(int argc, char* argv[])
 {
-
   /* store attribute and tag names */
-  const char* tag_name;
-  const char* attr_name;
+  char* tag_name = NULL;
+  char* attr_name = NULL;
 
   /* bools to determine whether whe should search for an exact path in 
      the xml, or scan all the fields/tags in order to find one that has
@@ -59,24 +65,28 @@ int main(int argc, char* argv[])
   /* get target file and parse xml document*/
   const char* doc_file = argv[argc-1];
   ezxml_t xml_doc = ezxml_parse_file(doc_file);
-  /* parse command line arguments and do required actions */
+  /* parse command line arguments and set variables */
   char c;
-  while ((c = getopt(argc, argv, "atAT")) != -1)
+  while ((c = getopt(argc, argv, "a:t:A:T:")) != -1)
     {
       switch (c)
 	{
 	case 'a':
+	  attr_name = optarg;
 	  break;
 
 	case 't':
+	  tag_name = optarg;
 	  break;
 
 	case 'A':
-	  search_attr = 1;
+	  search_attr = 1;	/* attribute will be searched */
+	  attr_name = optarg;
 	  break;
 
 	case 'T':
-	  search_tag = 1;
+	  search_tag = 1;	/* tag will be searched */
+	  tag_name = optarg;
 	  break;
 
 	default:
