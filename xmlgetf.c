@@ -38,13 +38,14 @@ search_field(ezxml_t* doc, const char *attr)
 }
 
 static void
-perform_actions(const char* tag, const char* attr, int s_attr, int s_tag)
+perform_actions(ezxml_t* doc,
+                const char* tag, const char* attr,
+                int s_attr, int s_tag)
 {
   /* Checks its arguments and calls the necessary functions 
      to extract the data. */
 
   printf("%s %s %d %d", tag, attr, s_attr, s_tag);
-
   char* attr_value = NULL;
   char* tag_value = NULL;
 }
@@ -62,9 +63,6 @@ int main(int argc, char* argv[])
   int search_attr = 0;
   int search_tag  = 0;
 
-  /* get target file and parse xml document*/
-  const char* doc_file = argv[argc-1];
-  ezxml_t xml_doc = ezxml_parse_file(doc_file);
   /* parse command line arguments and set variables */
   char c;
   while ((c = getopt(argc, argv, "a:t:A:T:")) != -1)
@@ -94,7 +92,10 @@ int main(int argc, char* argv[])
 	  break;
 	}
     }
-  perform_actions(tag_name, attr_name, search_attr, search_tag);
+  /* get target file and parse xml document*/
+  const char* doc_file = argv[argc-1];
+  ezxml_t xml_doc = ezxml_parse_file(doc_file);
+  perform_actions(xml_doc, tag_name, attr_name, search_attr, search_tag);
   printf("%s", doc_file);
   return 0;
 }
