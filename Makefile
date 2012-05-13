@@ -9,5 +9,5 @@ OBJECTS=xmlgetf.o
 all : xmlgetf.o
 	$(CC) $(CFLAGS) $(CLIBS) $(OBJECTS) -o xmlgetf
 
-
-
+clean:
+	rm $(OBJECTS)
