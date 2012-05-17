@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "ezxml/ezxml.h"
 #include <unistd.h>
+#include <string.h>
 
 static char* 
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
@@ -25,6 +26,13 @@ get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 static char*
 get_text_at_field(ezxml_t doc, const char* field)
 {
+  char* cur_field = strtok((char*) field, "/");
+  ezxml_t cur_tag = doc;
+  if (cur_field == NULL) return;
+  while((cur_field = strtok(NULL, "/")) != NULL)
+      cur_tag = ezxml_child(cur_tag, cur_field);
+
+  return ezxml_txt(cur_tag);
 }
 
 static char*
@@ -70,6 +78,7 @@ perform_actions(ezxml_t doc,
   else if (s_attr && attr != NULL)
       attr_value = search_attrs(doc, attr);
 
+  /* DEBUG info */
   if(attr_value != NULL) printf("%s", attr_value);
   if(tag_value != NULL) printf("%s", tag_value);
 }
@@ -119,6 +128,13 @@ int main(int argc, char* argv[])
   /* get target file and parse xml document*/
   const char* doc_file = argv[argc-1];
   ezxml_t xml_doc = ezxml_parse_file(doc_file);
+  /* check if document was parsed successfuly */
+  if(xml_doc == NULL)
+    {
+      printf("Failed to parse document %s", doc_file);
+      return -1;
+    }
+
   perform_actions(xml_doc, tag_name, attr_name, search_attr, search_tag);
   printf("%s", doc_file);
   return 0;

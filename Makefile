@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -O2 -Wall
+CFLAGS=-g -Wall
 CLIBS=ezxml/ezxml.o
 OBJECTS=xmlgetf.o
 OUTPUT=xmlgetf
