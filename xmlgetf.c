@@ -18,6 +18,20 @@
 #include <unistd.h>
 #include <string.h>
 
+static ezxml_t get_fields(ezxml_t doc, const char* field)
+{
+  char* cur_field = strtok((char*) field, "/");
+  char* temp_field = NULL;	/* temporary for field */
+  ezxml_t cur_tag = doc;
+  if (cur_field == NULL) return;
+  while((temp_field = strtok(NULL, "/")) != NULL)
+    {
+      cur_field = temp_field;	/* temp_field not null, use it as cur_field */
+      cur_tag = ezxml_child(cur_tag, cur_field);
+    }
+  return (cur_tag != doc ? cur_tag : NULL);
+}
+
 static char* 
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
@@ -26,13 +40,7 @@ get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 static char*
 get_text_at_field(ezxml_t doc, const char* field)
 {
-  char* cur_field = strtok((char*) field, "/");
-  ezxml_t cur_tag = doc;
-  if (cur_field == NULL) return;
-  while((cur_field = strtok(NULL, "/")) != NULL)
-      cur_tag = ezxml_child(cur_tag, cur_field);
-
-  return ezxml_txt(cur_tag);
+  return ezxml_txt(get_fields(doc, field));
 }
 
 static char*
@@ -57,8 +65,8 @@ perform_actions(ezxml_t doc,
 {
   /* Checks its arguments and calls the necessary functions 
      to extract the data. */
-
-  printf("%s %s %d %d", tag, attr, s_attr, s_tag);
+  /* DEBUG info */
+  printf("DEBUG: %s %s %d %d\n", tag, attr, s_attr, s_tag);
   char* attr_value = NULL;
   char* tag_value = NULL;
 
