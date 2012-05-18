@@ -42,31 +42,30 @@ static ezxml_t* get_fields(ezxml_t doc, const char* field)
       i = 0;
       /* populate array */
       tags[i] = cur_tag;
-      i ++;
+      i++;
       while((cur_tag = ezxml_next(cur_tag)) != NULL)
 	{
 	  tags[i] = cur_tag;
 	  i++;
 	}
-      i++;			/* increment to end of array */
       tags[i] = NULL;		/* add terminator */
       return tags;
     }
   else return NULL;
 }
 
-static char* 
+static void 
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
 }
 
-static char*
+static void
 get_text_at_field(ezxml_t doc, const char* field)
 {
   ezxml_t* tags = get_fields(doc, field);
   while(*tags != NULL)
     {
-      printf("\n%s", ezxml_txt((*tags)));
+      printf("\n%s\n", ezxml_txt((*tags)));
       tags++;
     }
 }
@@ -98,19 +97,19 @@ perform_actions(ezxml_t doc,
 
   /* get text at named path */
   if (!s_tag && tag != NULL && attr == NULL)
-      tag_value = get_text_at_field(doc, tag);
+    get_text_at_field(doc, tag);
   /* get attribute of the named field path */
   else if (!s_tag && tag != NULL && attr != NULL)
-      attr_value = get_attr_at_field(doc, tag, attr);
+    get_attr_at_field(doc, tag, attr);
   /* get all the fields with the name "tag" */
   else if (s_tag && tag != NULL && attr == NULL)
-      attr_value = search_fields(doc, tag);
+    search_fields(doc, tag);
   /* get attribute "attr" from fields named "tag" */
   else if (s_tag && tag != NULL && attr != NULL)
-      attr_value = search_fields_get_attr(doc, tag, attr);
+    search_fields_get_attr(doc, tag, attr);
   /* get all attributes named "attr" */
   else if (s_attr && attr != NULL)
-      attr_value = search_attrs(doc, attr);
+    search_attrs(doc, attr);
 }
 
 
@@ -166,6 +165,6 @@ int main(int argc, char* argv[])
     }
 
   perform_actions(xml_doc, tag_name, attr_name, search_attr, search_tag);
-  printf("%s", doc_file);
+  printf("DEBUG: %s\n", doc_file);
   return 0;
 }
