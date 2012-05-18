@@ -18,6 +18,15 @@
 #include <unistd.h>
 #include <string.h>
 
+static int count_siblings(ezxml_t tag)
+{
+  ezxml_t count_tag = tag;
+  int i = 1;		/* 1, because we already have one tag */
+  /* count */
+  while((count_tag = ezxml_next(count_tag)) != NULL) i++;
+  return i;
+}
+
 static ezxml_t* get_fields(ezxml_t doc, const char* field)
 {
   char* cur_field = strtok((char*) field, "/");
@@ -32,14 +41,9 @@ static ezxml_t* get_fields(ezxml_t doc, const char* field)
   if(cur_tag != doc)
     {
       /* get all the siblings */
-      /* first, count the siblings */
-      ezxml_t count_tag = cur_tag;
-      int i = 1;		/* 1, because of the current tag */
-      /* count */
-      while((count_tag = ezxml_next(count_tag)) != NULL) i++;
       /* allocate memory for the array */
-      ezxml_t* tags = malloc(sizeof(ezxml_t)*i+1);
-      i = 0;
+      ezxml_t* tags = malloc(sizeof(ezxml_t)*count_siblings(cur_tag)+1);
+      int i = 0;
       /* populate array */
       tags[i] = cur_tag;
       i++;
