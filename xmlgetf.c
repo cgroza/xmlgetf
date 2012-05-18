@@ -18,18 +18,41 @@
 #include <unistd.h>
 #include <string.h>
 
-static ezxml_t get_fields(ezxml_t doc, const char* field)
+static ezxml_t* get_fields(ezxml_t doc, const char* field)
 {
   char* cur_field = strtok((char*) field, "/");
   char* temp_field = NULL;	/* temporary for field */
   ezxml_t cur_tag = doc;
-  if (cur_field == NULL) return;
+  if (cur_field == NULL) return NULL;
   while((temp_field = strtok(NULL, "/")) != NULL)
     {
       cur_field = temp_field;	/* temp_field not null, use it as cur_field */
       cur_tag = ezxml_child(cur_tag, cur_field);
     }
-  return (cur_tag != doc ? cur_tag : NULL);
+  if(cur_tag != doc)
+    {
+      /* get all the siblings */
+      /* first, count the siblings */
+      ezxml_t count_tag = cur_tag;
+      int i = 1;		/* 1, because of the current tag */
+      /* count */
+      while((count_tag = ezxml_next(count_tag)) != NULL) i++;
+      /* allocate memory for the array */
+      ezxml_t* tags = malloc(sizeof(ezxml_t)*i+1);
+      i = 0;
+      /* populate array */
+      tags[i] = cur_tag;
+      i ++;
+      while((cur_tag = ezxml_next(cur_tag)) != NULL)
+	{
+	  tags[i] = cur_tag;
+	  i++;
+	}
+      i++;			/* increment to end of array */
+      tags[i] = NULL;		/* add terminator */
+      return tags;
+    }
+  else return NULL;
 }
 
 static char* 
@@ -40,7 +63,12 @@ get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 static char*
 get_text_at_field(ezxml_t doc, const char* field)
 {
-  return ezxml_txt(get_fields(doc, field));
+  ezxml_t* tags = get_fields(doc, field);
+  while(*tags != NULL)
+    {
+      printf("\n%s", ezxml_txt((*tags)));
+      tags++;
+    }
 }
 
 static char*
@@ -67,8 +95,6 @@ perform_actions(ezxml_t doc,
      to extract the data. */
   /* DEBUG info */
   printf("DEBUG: %s %s %d %d\n", tag, attr, s_attr, s_tag);
-  char* attr_value = NULL;
-  char* tag_value = NULL;
 
   /* get text at named path */
   if (!s_tag && tag != NULL && attr == NULL)
@@ -85,10 +111,6 @@ perform_actions(ezxml_t doc,
   /* get all attributes named "attr" */
   else if (s_attr && attr != NULL)
       attr_value = search_attrs(doc, attr);
-
-  /* DEBUG info */
-  if(attr_value != NULL) printf("%s", attr_value);
-  if(tag_value != NULL) printf("%s", tag_value);
 }
 
 
