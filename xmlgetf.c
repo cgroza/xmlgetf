@@ -61,15 +61,23 @@ static ezxml_t* get_fields(ezxml_t doc, const char* field)
 static void 
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
+  ezxml_t* tags = get_fields(doc, field);
+  if(tags == NULL) return
+  while(*tags != NULL)
+    {
+      printf("%s\n\n\n", ezxml_attr((*tags), attr));
+      tags++;
+    }
 }
 
 static void
 get_text_at_field(ezxml_t doc, const char* field)
 {
   ezxml_t* tags = get_fields(doc, field);
+  if(tags == NULL) return;
   while(*tags != NULL)
     {
-      printf("\n%s\n", ezxml_txt((*tags)));
+      printf("%s\n\n\n", ezxml_txt((*tags)));
       tags++;
     }
 }
