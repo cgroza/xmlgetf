@@ -62,7 +62,7 @@ static void
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
   ezxml_t* tags = get_fields(doc, field);
-  if(tags == NULL) return
+  if(tags == NULL) return;
   while(*tags != NULL)
     {
       printf("%s\n\n\n", ezxml_attr((*tags), attr));
@@ -82,17 +82,38 @@ get_text_at_field(ezxml_t doc, const char* field)
     }
 }
 
-static char*
+static void
 search_attrs(ezxml_t doc, const char *attr)
 {
 }
 
-static char*
+static void
 search_fields(ezxml_t doc, const char *field)
 {
+  ezxml_t iterator = NULL;
+  ezxml_t child = ezxml_child(doc, field);
+  if(child != NULL)
+    {
+      printf("%s\n\n\n", ezxml_txt(child));
+      child = ezxml_next(child);
+      while(child != NULL)
+	{
+	  printf("%s\n\n\n", ezxml_txt(child));
+	  child = ezxml_next(child);
+	}
+    }
+
+  /* now call search fields for every child. we travers the tree this way */
+  if(doc -> child == NULL) return;
+  iterator = doc -> child;
+  while(iterator != NULL) 
+    {
+    search_fields(iterator, field);
+    iterator = iterator -> ordered;
+    }
 }
 
-static char*
+static void
 search_fields_get_attr(ezxml_t doc, const char* field, const char* attr)
 {
 }
