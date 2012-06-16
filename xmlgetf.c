@@ -17,17 +17,9 @@
 #include "ezxml/ezxml.h"
 #include <unistd.h>
 #include <string.h>
+#include "linked_list.h"
 
-static int count_siblings(ezxml_t tag)
-{
-  ezxml_t count_tag = tag;
-  int i = 1;		/* 1, because we already have one tag */
-  /* count */
-  while((count_tag = ezxml_next(count_tag)) != NULL) i++;
-  return i;
-}
-
-static ezxml_t* get_fields(ezxml_t doc, const char* field)
+static linked_list* get_fields(ezxml_t doc, const char* field)
 {
   char* cur_field = strtok((char*) field, "/");
   char* temp_field = NULL;	/* temporary for field */
@@ -40,19 +32,11 @@ static ezxml_t* get_fields(ezxml_t doc, const char* field)
     }
   if(cur_tag != doc)
     {
-      /* get all the siblings */
-      /* allocate memory for the array */
-      ezxml_t* tags = malloc(sizeof(ezxml_t)*count_siblings(cur_tag)+1);
-      int i = 0;
-      /* populate array */
-      tags[i] = cur_tag;
-      i++;
+      linked_list* tags = new_linked_list();
+      tags -> val = cur_tag;
       while((cur_tag = ezxml_next(cur_tag)) != NULL)
-	{
-	  tags[i] = cur_tag;
-	  i++;
-	}
-      tags[i] = NULL;		/* add terminator */
+	push_linked_list(cur_tag, tags);
+
       return tags;
     }
   else return NULL;
@@ -61,25 +45,29 @@ static ezxml_t* get_fields(ezxml_t doc, const char* field)
 static void 
 get_attr_at_field(ezxml_t doc, const char* field, const char* attr)
 {
-  ezxml_t* tags = get_fields(doc, field);
+  linked_list* tags = get_fields(doc, field);
+  linked_list* head = tags;
   if(tags == NULL) return;
-  while(*tags != NULL)
+  while(tags != NULL)
     {
-      printf("%s\n\n\n", ezxml_attr((*tags), attr));
-      tags++;
+      printf("%s\n\n\n", ezxml_attr(tags->val, attr));
+      tags = tags -> next;
     }
+  delete_linked_list(head);
 }
 
 static void
 get_text_at_field(ezxml_t doc, const char* field)
 {
-  ezxml_t* tags = get_fields(doc, field);
+  linked_list* tags = get_fields(doc, field);
+  linked_list* head = tags;
   if(tags == NULL) return;
-  while(*tags != NULL)
+  while(tags != NULL)
     {
-      printf("%s\n\n\n", ezxml_txt((*tags)));
-      tags++;
+      printf("%s\n\n\n", ezxml_txt(tags->val));
+      tags = tags -> next;
     }
+  delete_linked_list(head);
 }
 
 static void
@@ -87,36 +75,58 @@ search_attrs(ezxml_t doc, const char *attr)
 {
 }
 
-static void
-search_fields(ezxml_t doc, const char *field)
+static linked_list*
+search_fields(ezxml_t doc, const char *field, linked_list* acc)
 {
   ezxml_t iterator = NULL;
   ezxml_t child = ezxml_child(doc, field);
-  if(child != NULL)
+  while(child != NULL)
     {
-      printf("%s\n\n\n", ezxml_txt(child));
+      push_linked_list(child, acc);
       child = ezxml_next(child);
-      while(child != NULL)
-	{
-	  printf("%s\n\n\n", ezxml_txt(child));
-	  child = ezxml_next(child);
-	}
     }
 
   /* now call search fields for every child. we travers the tree this way */
-  if(doc -> child == NULL) return;
   iterator = doc -> child;
   while(iterator != NULL) 
     {
-    search_fields(iterator, field);
-    iterator = iterator -> ordered;
+      search_fields(iterator, field, acc);
+      iterator = iterator -> ordered;
     }
+  return acc;
 }
 
 static void
 search_fields_get_attr(ezxml_t doc, const char* field, const char* attr)
 {
+  linked_list* tags = search_fields(doc, field, new_linked_list());
+  linked_list* head = tags;
+  tags = tags -> next;
+  if(tags == NULL) return;
+  while(tags != NULL)
+    {
+      printf("%s\n\n\n", ezxml_attr(tags->val, attr));
+      tags = tags -> next;
+    }
+  delete_linked_list(head);
+
 }
+
+static void
+search_fields_get_txt(ezxml_t doc, const char* field)
+{
+  linked_list* tags = search_fields(doc, field, new_linked_list());
+  linked_list* head = tags;
+  tags = tags -> next;
+  if(tags == NULL) return;
+  while(tags != NULL)
+    {
+      printf("%s\n\n\n", ezxml_txt(tags->val));
+      tags = tags -> next;
+    }
+  delete_linked_list(head);
+}
+
 
 static void
 perform_actions(ezxml_t doc,
@@ -136,7 +146,7 @@ perform_actions(ezxml_t doc,
     get_attr_at_field(doc, tag, attr);
   /* get all the fields with the name "tag" */
   else if (s_tag && tag != NULL && attr == NULL)
-    search_fields(doc, tag);
+    search_fields_get_txt(doc, tag);
   /* get attribute "attr" from fields named "tag" */
   else if (s_tag && tag != NULL && attr != NULL)
     search_fields_get_attr(doc, tag, attr);
