@@ -137,7 +137,6 @@ int main(int argc, char* argv[])
       printf("Failed to parse document %s", doc_file);
       return -1;
     }
-
   if(entry_seprator == NULL) entry_seprator = "--------------------------------";
   perform_actions(xml_doc, tag_name, attr_name, attr_value, entry_seprator,
 		  search_attr, search_tag, attr_tag_txt);

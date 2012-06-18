@@ -17,7 +17,6 @@ linked_list* get_fields(ezxml_t doc, const char* field)
       tags -> val = cur_tag;
       while((cur_tag = ezxml_next(cur_tag)) != NULL)
 	push_linked_list(cur_tag, tags);
-
       return tags;
     }
   else return NULL;
@@ -77,7 +76,6 @@ linked_list* search_fields(ezxml_t doc, const char *field, linked_list* acc)
       push_linked_list(child, acc);
       child = ezxml_next(child);
     }
-
   /* now call search fields for every child. we travers the tree this way */
   iterator = doc -> child;
   while(iterator != NULL) 

@@ -13,10 +13,8 @@ linked_list* get_fields(ezxml_t doc, const char* field);
 linked_list* search_attrs(ezxml_t doc, const char *attr, linked_list* acc,
 			  const char* attr_value);
 
-
 /* Prints the text of the fields contained in tags. */
-void
-print_field_txt(linked_list* tags, const char* entry_sep);
+void print_field_txt(linked_list* tags, const char* entry_sep);
 
 /* Prints the value of the attributes attr contained in tags. */
 void print_attrs(linked_list* tags, const char* attr, const char* entry_sep);

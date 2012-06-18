@@ -15,7 +15,6 @@ int length_linked_list(linked_list* list);
 /* creates a new linked list node */
 linked_list* new_linked_list();
 
-
 /* deletes every node of list and its values */
 void delete_linked_list(linked_list* list);
 
