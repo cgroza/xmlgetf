@@ -71,22 +71,34 @@ get_text_at_field(ezxml_t doc, const char* field)
 }
 
 static linked_list*
-search_attrs(ezxml_t doc, const char *attr, linked_list* acc)
+search_attrs(ezxml_t doc, const char *attr, linked_list* acc,
+	     const char* attr_value)
 {
   ezxml_t iterator = NULL;
-  if(ezxml_attr(doc, attr) != NULL) push_linked_list(doc, acc);
+  if(attr_value == NULL)
+    {
+      if(ezxml_attr(doc, attr) != NULL) push_linked_list(doc, acc);
+    }
+  else
+    {
+      const char* value = ezxml_attr(doc, attr);
+      if(value != NULL && strcmp(value, attr_value) == 0)
+	push_linked_list(doc, acc);
+    }
+
   iterator = doc -> child;
   while(iterator != NULL)
     {
-      search_attrs(iterator, attr, acc);
+      search_attrs(iterator, attr, acc, attr_value);
       iterator = iterator -> ordered;
     }
   return acc;
 }
 
-static void search_attrs_get_attr(ezxml_t doc, const char* attr)
+static void search_attrs_get_attr(ezxml_t doc, const char* attr,
+				  const char* attr_val)
 {
-  linked_list* tags = search_attrs(doc, attr, new_linked_list());
+  linked_list* tags = search_attrs(doc, attr, new_linked_list(), attr_val);
   linked_list* head = tags;
   tags = tags -> next;
   while(tags != NULL) 
@@ -97,9 +109,10 @@ static void search_attrs_get_attr(ezxml_t doc, const char* attr)
   delete_linked_list(head);
 }
 
-static void search_attrs_get_txt(ezxml_t doc, const char* attr)
+static void search_attrs_get_txt(ezxml_t doc, const char* attr, 
+				 const char* attr_val)
 {
-  linked_list* tags = search_attrs(doc, attr, new_linked_list());
+  linked_list* tags = search_attrs(doc, attr, new_linked_list(), attr_val);
   linked_list* head = tags;
   tags = tags -> next;
   while(tags != NULL) 
@@ -166,7 +179,7 @@ search_fields_get_txt(ezxml_t doc, const char* field)
 
 static void
 perform_actions(ezxml_t doc,
-                const char* tag, const char* attr,
+                const char* tag, const char* attr, const char* attr_value,
                 int s_attr, int s_tag, int attr_tag_txt)
 {
   /* Checks its arguments and calls the necessary functions 
@@ -174,9 +187,10 @@ perform_actions(ezxml_t doc,
   /* DEBUG info */
   printf("DEBUG: %s %s %d %d\n", tag, attr, s_attr, s_tag);
 
-  /* get text at named path */
+  /* get text of path containing attr */
   if(attr_tag_txt && s_attr && attr != NULL)
-    search_attrs_get_txt(doc, attr);
+    search_attrs_get_txt(doc, attr, attr_value);
+  /* get text at named path */
   else if(!s_tag && tag != NULL && attr == NULL)
     get_text_at_field(doc, tag);
   /* get attribute of the named field path */
@@ -190,7 +204,7 @@ perform_actions(ezxml_t doc,
     search_fields_get_attr(doc, tag, attr);
   /* get all attributes named "attr" */
   else if(s_attr && attr != NULL)
-    search_attrs_get_attr(doc, attr);
+    search_attrs_get_attr(doc, attr, attr_value);
 }
 
 int main(int argc, char* argv[])
@@ -198,7 +212,7 @@ int main(int argc, char* argv[])
   /* store attr and tag names */
   char* tag_name = NULL;
   char* attr_name = NULL;
-
+  char* attr_value = NULL;
   /* bools to determine whether whe should search for an exact path in 
      the xml, or scan all the fields/tags in order to find one that has
      the required name */
@@ -209,7 +223,7 @@ int main(int argc, char* argv[])
 
   /* parse command line arguments and set variables */
   char c;
-  while((c = getopt(argc, argv, "a:t:A:T:c:")) != -1)
+  while((c = getopt(argc, argv, "a:t:A:T:v:c")) != -1)
     {
       switch(c)
 	{
@@ -235,6 +249,10 @@ int main(int argc, char* argv[])
 	  attr_tag_txt = 1;
 	  break;
 
+	case 'v':
+	  attr_value = optarg;
+	  break;
+
 	default:
 	  printf("Invalid use of arguments. Please consult the documentation.\n");
 	  exit(-1);
@@ -251,8 +269,8 @@ int main(int argc, char* argv[])
       return -1;
     }
 
-  perform_actions(xml_doc, tag_name, attr_name, search_attr, search_tag,
-		  attr_tag_txt);
+  perform_actions(xml_doc, tag_name, attr_name, attr_value, search_attr,
+		  search_tag, attr_tag_txt);
   printf("DEBUG: %s\n", doc_file);
   return 0;
 }
